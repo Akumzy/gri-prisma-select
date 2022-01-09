@@ -1,0 +1,53 @@
+{
+  "name": "@akumzy/gri-prisma-select",
+  "version": "0.0.1",
+  "main": "dist-cjs/index.js",
+  "types": "dist-cjs/index.d.ts",
+  "scripts": {
+    "clean": "rm -rf dist-cjs dist-esm node_modules/.cache",
+    "build": "pnpm clean && tsc --build tsconfig.cjs.json tsconfig.esm.json",
+    "test": "jest"
+  },
+  "author": "Akuma Isaac Akuma <akumaisaacakuma@gmail.com>",
+  "dependencies": {
+    "@graphql-tools/utils": "^8.6.1",
+    "graphql": "^16.2.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^27.0.2",
+    "jest": "^27.3.1",
+    "jest-diff": "^27.4.2",
+    "jest-transform-stub": "^2.0.0",
+    "ts-jest": "^27.0.7",
+    "tslib": "^2.3.1",
+    "typescript": "^4.5.4"
+  },
+  "description": "Generate Prisma select object from GraphQL Resolve Info.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Akumzy/gri-prisma-select.git"
+  },
+  "keywords": [
+    "prisma",
+    "graphql",
+    "schema"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Akumzy/gri-prisma-select/issues"
+  },
+  "homepage": "https://github.com/Akumzy/gri-prisma-select#readme",
+  "files": [
+    "dist-cjs",
+    "dist-esm"
+  ],
+  "exports": {
+    ".": {
+      "require": "./dist-cjs/index.js",
+      "import": "./dist-esm/index.js"
+    },
+    "./*": {
+      "default": "./*.js"
+    }
+  }
+}

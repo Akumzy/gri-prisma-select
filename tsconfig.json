@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "target": "es2018",
+    "module": "commonjs",
+    "baseUrl": "src",
+    "outDir": "lib",
+    "incremental": true,
+    "lib": ["esnext"],
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "declaration": true,
+    "isolatedModules": true,
+
+    "strict": true,
+    "noImplicitAny": false,
+    "noUncheckedIndexedAccess": false,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "useUnknownInCatchVariables": false,
+    "skipDefaultLibCheck": true,
+
+    "moduleResolution": "Node",
+    "importHelpers": true,
+    "tsBuildInfoFile": "node_modules/.cache/.tsbuildinfo"
+  },
+  "exclude": [
+    "node_modules",
+    "src/**/*.test**",
+    "lib/**/*"
+  ]
+}
