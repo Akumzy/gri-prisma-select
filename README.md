@@ -7,6 +7,71 @@ with this information you can generate **Prisma** select object which extends th
 clients to your database by only fetching the fields that are needed and as well resolving the
 **GraphQL** n+1 query problem with the power of **Prisma**.
 
+Demo:
+
+```ts
+// Turn this to a GraphQL query:
+const query = /* GraphQL */ `
+  {
+    user {
+      id
+      name
+      email
+      createdAt
+      photo
+      posts {
+        id
+        title
+        content
+        createdAt
+        comments {
+          id
+          content
+          createdAt
+          author {
+            id
+            name
+            photo
+          }
+        }
+      }
+    }
+  }
+`
+// Into this Prisma select object:
+const prismaSelect = {
+  select: {
+    id: true,
+    name: true,
+    email: true,
+    createdAt: true,
+    photo: true,
+    posts: {
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        createdAt: true,
+        comments: {
+          select: {
+            id: true,
+            content: true,
+            createdAt: true,
+            author: {
+              select: {
+                id: true,
+                name: true,
+                photo: true,
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+}
+```
+
 ## Installation
 
 ```shell
