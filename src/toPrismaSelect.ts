@@ -19,7 +19,8 @@ export type ParsedResult = {
   }
   where?: any
 }
-export async function toPrismaSelect(info: GraphQLResolveInfo) {
+type ParseQueryOptions = { notAllowed?: string[] }
+export async function toPrismaSelect(info: GraphQLResolveInfo, options: ParseQueryOptions = {}) {
   const parsed = info.fieldNodes.reduce((prev, cur) => {
     if (cur.selectionSet) {
       return [...prev, ...parseQueryFields(cur, info)]
@@ -81,6 +82,7 @@ function parseQueryFields(field: FieldNode | FragmentDefinitionNode, info: Graph
           }
           field.directives
           const w = getArgument(field, info)
+
           prev.push({
             field: fieldName,
             selections: field.selectionSet
@@ -89,7 +91,7 @@ function parseQueryFields(field: FieldNode | FragmentDefinitionNode, info: Graph
                   [] as any[],
                 )
               : null,
-            where: w,
+            where: "where" in w ? w.where : w,
           })
         }
         break
@@ -119,11 +121,12 @@ function parseQueryFields(field: FieldNode | FragmentDefinitionNode, info: Graph
   }
 
   const w = getArgument(field, info)
+
   let selections = selectionSet.selections.reduce((prev, field) => {
     return [...prev, ...parse(field as any)]
   }, [] as ISelection[])
 
-  return [{ selections, where: w, field: field.name.value }]
+  return [{ selections, where: "where" in w ? w.where : w, field: field.name.value }]
 }
 
 function parseSelections(selections: ISelection[]) {
@@ -151,10 +154,32 @@ function parseSelections(selections: ISelection[]) {
 function getArgument(field: FieldNode | FragmentDefinitionNode, info: GraphQLResolveInfo) {
   let w: any = {}
   if ("arguments" in field) {
-    const value = field.arguments?.find((a) => a.name.value === "where")?.value
-    if (value?.kind === "ObjectValue") {
-      w = parseArguments(value.fields, info)
-    }
+    field.arguments?.forEach((arg) => {
+      const name = arg.name.value
+
+      switch (arg.value.kind) {
+        case Kind.OBJECT:
+          let v = parseArguments(arg.value.fields, info)
+          w[name] = getObjectValue(v)
+          break
+        case Kind.VARIABLE:
+          const value = info.variableValues[arg.value.name.value]
+          if (value) {
+            w[name] = value
+          }
+          break
+        case Kind.ENUM:
+          w[name] = arg.value.value
+          break
+        case Kind.NULL:
+          w[name] = null
+          break
+        default:
+          // @ts-ignore
+          w[name] = arg.value.value
+          break
+      }
+    })
   }
   return w
 }
@@ -185,4 +210,22 @@ function parseArguments(fields: readonly ObjectFieldNode[], info: GraphQLResolve
     }
     return prev
   }, {})
+}
+
+// map through an object recursively and check if any of it's properties value is not an ObjectValueNode and if so, return the key with the name value
+function getObjectValue(obj: any) {
+  let newObj: any = {}
+  if (typeof obj === "object") {
+    for (const [key, value] of Object.entries(obj)) {
+      if (typeof value === "object") {
+        if (value && "kind" in value) {
+          // @ts-ignore
+          newObj[key] = value.value
+        } else {
+          newObj[key] = getObjectValue(value)
+        }
+      } else newObj[key] = value
+    }
+  }
+  return newObj
 }
