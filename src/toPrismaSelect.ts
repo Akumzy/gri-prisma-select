@@ -18,6 +18,8 @@ export type ParsedResult = {
     [key: string]: true | ParsedResult
   }
   where?: any
+  take?: number
+  skip?: number
 }
 type ParseQueryOptions = { notAllowed?: string[] }
 export async function toPrismaSelect(info: GraphQLResolveInfo, options: ParseQueryOptions = {}) {
@@ -82,7 +84,6 @@ function parseQueryFields(field: FieldNode | FragmentDefinitionNode, info: Graph
           }
           field.directives
           const w = getArgument(field, info)
-
           prev.push({
             field: fieldName,
             selections: field.selectionSet
@@ -91,7 +92,7 @@ function parseQueryFields(field: FieldNode | FragmentDefinitionNode, info: Graph
                   [] as any[],
                 )
               : null,
-            where: "where" in w ? w.where : w,
+            ...(w || {}),
           })
         }
         break
@@ -133,6 +134,8 @@ function parseSelections(selections: ISelection[]) {
   const parsed: ParsedResult = {
     select: {},
     where: {},
+    take: 0,
+    skip: 0,
   }
   selections.forEach((selection) => {
     if (selection.selections) {
@@ -148,6 +151,22 @@ function parseSelections(selections: ISelection[]) {
     } else {
       delete parsed.where
     }
+    ;["take", "skip"].forEach((key) => {
+      switch (key) {
+        case "take":
+        case "skip":
+          if (selection[key]) {
+            parsed.select[selection.field] = parsed.select[selection.field] || {}
+            // @ts-ignore
+            parsed.select[selection.field][key] = +selection[key]
+          } else {
+            delete parsed[key]
+          }
+          break
+        default:
+          break
+      }
+    })
   })
   return parsed
 }
